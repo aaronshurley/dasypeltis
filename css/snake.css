@@ -10,3 +10,7 @@
   width: 20px;
   border: 1px black solid;
 }
+
+.snake {
+  background: tomato;
+}

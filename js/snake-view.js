@@ -10,15 +10,15 @@
     this.bindEvents();
     var that = this;
     setInterval(function (){
-      that.game.board.snake.move();
-      that.render(); 
+      that.step(); 
     }, 1000);
   };
   
-  // View.prototype.step = function step (){
-  //   this.game.board.snake.move();
-  //   this.render();
-  // };
+  View.prototype.step = function step (){
+    this.game.board.snake.move();
+    // debugger;
+    this.render();
+  };
 
   View.prototype.bindEvents = function () {
     var that = this;
@@ -57,12 +57,13 @@
   
   View.prototype.render = function () {
     var that = this;
-    this.game.board.snake.segments.forEach( function (coord) {
+    this.$el.empty();
+    this.setupBoard();
+    this.game.board.snake.segments.forEach( function (coord) {      
       var divId = coord.pos[0].toString() + coord.pos[1].toString();
-      
-      var $snakeDiv = $('#' + divId); //document.getElementById(divId);
-      console.log($snakeDiv);
-      $snakeDiv.css("background", "tomato");
+      var $snakeDiv = $('#' + divId);
+      // console.log("CURRENT: " + $snakeDiv.attr('id'));
+      $snakeDiv.addClass("snake");
     });
   };
 })();

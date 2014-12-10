@@ -12,9 +12,13 @@
 
   Snake.prototype.move = function move () {
     var that =  this;
+    this.lastPos = this.segments[this.segments.length - 1];
+    console.log("LAST SEG: i = " + this.lastPos.pos[0] + ", j = " + this.lastPos.pos[1]);
     this.segments.forEach(function (coord) {
       coord.plus(that.dir);
     });
+    var newSeg = this.segments[0];
+    console.log("NEW SEG: i = " + newSeg.pos[0] + ", j = " + newSeg.pos[1]);
   };
   
   Snake.prototype.turn = function turn (dir){
@@ -54,27 +58,27 @@
     return grid;
   };
   
-  Board.prototype.render = function () {
-    var that = this;
-    this.snake.segments.forEach( function (coord) {
-       that.grid[coord.pos[0]][coord.pos[1]] = "S";
-     });
-    
-    var strs = [];
-    for (var rowIdx = 0; rowIdx < 20; rowIdx++) {
-      var marks = [];
-      for (var colIdx = 0; colIdx < 20; colIdx++) {
-        marks.push(
-          this.grid[rowIdx][colIdx] ? "S" : "."
-        );
-      }
-
-      strs.push(marks.join(" ") + "\n");
-    }
-
-    console.log(strs.join("\n"));
-    
-  };
+//  Board.prototype.render = function () {
+//     var that = this;
+//     this.snake.segments.forEach( function (coord) {
+//        that.grid[coord.pos[0]][coord.pos[1]] = "S";
+//      });
+//
+//     var strs = [];
+//     for (var rowIdx = 0; rowIdx < 20; rowIdx++) {
+//       var marks = [];
+//       for (var colIdx = 0; colIdx < 20; colIdx++) {
+//         marks.push(
+//           this.grid[rowIdx][colIdx] ? "S" : "."
+//         );
+//       }
+//
+//       strs.push(marks.join(" ") + "\n");
+//     }
+//
+//     console.log(strs.join("\n"));
+//
+//   };
   
   var Game = SNAKE.Game= function () {
     this.board = new Board();
