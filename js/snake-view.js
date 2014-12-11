@@ -3,67 +3,89 @@
     window.SNAKE = {};
   }
 
-  var View = SNAKE.View = function (game, $el) {
-    this.game = game;
+  var View = SNAKE.View = function ($el) {
     this.$el = $el;
-    this.setupBoard();
-    this.bindEvents();
-    var that = this;
-    setInterval(function (){
-      that.step(); 
-    }, 1000);
-  };
-  
-  View.prototype.step = function step (){
-    this.game.board.snake.move();
-    // debugger;
-    this.render();
+
+    this.board = new SNAKE.Board(20);
+    this.intervalSet = false;
+    this.intervalId = null;
+    this.toggleInterval();
+    $(window).on("keydown", this.handleKeyEvent.bind(this));
   };
 
-  View.prototype.bindEvents = function () {
-    var that = this;
-    $(document).keydown(function (event) { 
-      console.log(event.keyCode);
-      switch(event.keyCode) {
-        case 38:
-          return that.game.board.snake.turn("N");
-
-        case 39:
-          return that.game.board.snake.turn("E");
-
-        case 40:
-          return that.game.board.snake.turn("S");
-
-        case 37:
-          return that.game.board.snake.turn("W");
-
-        default:
-          return;
-     }
-    });
+  View.KEYS = {
+    38: "N",
+    39: "E",
+    40: "S",
+    37: "W"
   };
-  
-  View.prototype.setupBoard = function () {
-    var megaString = "";
-    for (var i = 0; i < 20; i++) {
-      megaString += "<div class='row'>";
-      for (var j = 0; j < 20; j++){
-        megaString += "<div class='cell' id=" + i.toString() + j.toString() + "></div>";
-      }
-      megaString += "</div>";
+
+  View.STEP_MILLIS = 75;
+
+  View.prototype.handleKeyEvent = function (event) {
+    if (View.KEYS[event.keyCode]) {
+      this.board.snake.turn(View.KEYS[event.keyCode]);
+    } else if (event.keyCode === 32) {
+      this.toggleInterval();
     }
-    this.$el.html(megaString);
   };
   
+  View.prototype.toggleInterval = function () {
+    if (this.intervalSet) {
+      window.clearInterval(this.intervalId);
+      this.intervalSet = false;
+    } else {
+      this.intervalId = window.setInterval(
+        this.step.bind(this),
+        View.STEP_MILLIS
+      );
+      this.intervalSet = true;
+    }
+  }
+
   View.prototype.render = function () {
-    var that = this;
-    this.$el.empty();
-    this.setupBoard();
-    this.game.board.snake.segments.forEach( function (coord) {      
-      var divId = coord.pos[0].toString() + coord.pos[1].toString();
-      var $snakeDiv = $('#' + divId);
-      // console.log("CURRENT: " + $snakeDiv.attr('id'));
-      $snakeDiv.addClass("snake");
+    var view = this;
+    var board = view.board;
+
+    var cellsMatrix = buildCellsMatrix();
+    board.snake.segments.forEach(function (seg) {
+      cellsMatrix[seg.i][seg.j].addClass("snake");
     });
+
+    cellsMatrix[board.egg.position.i][board.egg.position.j].addClass("egg");
+
+    this.$el.empty();
+    this.$el.append("<h3>Your Score: " + board.snake.points + "</h3>");
+    this.$el.append("<h5>Use arrow keys to change direction, SPACE to PAUSE game</h5>");
+    cellsMatrix.forEach(function (row) {
+      var $rowEl = $('<div class="row"></div>');
+      row.forEach(function ($cell) { $rowEl.append($cell) });
+      view.$el.append($rowEl);
+    });
+
+    function buildCellsMatrix () {
+      var cellsMatrix = [];
+      for (var i = 0; i < board.dim; i++) {
+        var cellsRow = [];
+        for (var j = 0; j < board.dim; j++) {
+          cellsRow.push($('<div class="cell"></div>'));
+        }
+        cellsMatrix.push(cellsRow);
+      }
+
+      return cellsMatrix;
+    }
+  };
+
+  View.prototype.step = function () {
+    if (this.board.snake.segments.length > 0) {
+      this.board.snake.move();
+      this.render();
+    } else {
+      window.clearInterval(this.intervalId);
+      var content = "<h2>Game Over</h2><h3>Final Score: " + this.board.snake.points + "</h3><section class='color-1'><a href='#' onclick='location.reload(true); return false;'>Play Again?</a></section><h5><strong>Tip: </strong>Use SPACEBAR to pause the game</h5>";
+      $('.container').empty();
+      $('.container').append(content);
+    }
   };
 })();

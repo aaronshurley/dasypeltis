@@ -1,87 +1,87 @@
 (function () {
-  if(typeof SNAKE === "undefined") {
-    window.SNAKE ={};
+  if (typeof SNAKE === "undefined") {
+    window.SNAKE = {};
   }
   
-  var Snake = SNAKE.Snake = function () {
-    this.DIR = ["N", "E", "S", "W"];
+  var Snake = SNAKE.Snake = function (board) {
     this.dir = "N";
-    this.segments = [new Coord([10, 10])];
-    this.lastPos = null;
+    this.board = board;
+
+    var center = new SNAKE.Coord(board.dim / 2, board.dim / 2);
+    this.segments = [center];
+
+    this.growTurns = 0;
+    this.points = 0;
   };
 
-  Snake.prototype.move = function move () {
-    var that =  this;
-    this.lastPos = this.segments[this.segments.length - 1];
-    console.log("LAST SEG: i = " + this.lastPos.pos[0] + ", j = " + this.lastPos.pos[1]);
-    this.segments.forEach(function (coord) {
-      coord.plus(that.dir);
-    });
-    var newSeg = this.segments[0];
-    console.log("NEW SEG: i = " + newSeg.pos[0] + ", j = " + newSeg.pos[1]);
-  };
-  
-  Snake.prototype.turn = function turn (dir){
-    this.dir = dir;
+  Snake.DIFFS = {
+    "N": new SNAKE.Coord(-1, 0),
+    "E": new SNAKE.Coord(0, 1),
+    "S": new SNAKE.Coord(1, 0),
+    "W": new SNAKE.Coord(0, -1)
   };
 
-  var Coord = SNAKE.Coord = function (pos) {
-    this.pos = pos;
-  };
+  Snake.SYMBOL = "S";
 
-  Coord.prototype.plus = function (dir) {
-    if (dir === "N") {
-      this.pos = [this.pos[0]-1, this.pos[1]];
-    } else if (dir === "E") {
-      this.pos = [this.pos[0], this.pos[1]+1];
-    } else if (dir === "S") {
-      this.pos = [this.pos[0]+1, this.pos[1]];
+  Snake.prototype.eatEgg = function () {
+    if (this.head().equals(this.board.egg.position)) {
+      this.growTurns += 2;
+      this.points += 10;
+      return true;
     } else {
-      this.pos = [this.pos[0], this.pos[1]-1];
-    } 
+      return false;
+    }
   };
 
-  var Board = SNAKE.Board = function () {
-    this.snake = new Snake();
-    this.grid = this.makeGrid();
-    
-  }
-  
-  Board.prototype.makeGrid = function () {
-    var grid = [];
-    for (var i = 0; i < 20; i++) {
-      grid.push([]);
-      for (var j = 0; j < 20; j++) {
-        grid[i].push(null);
+  Snake.prototype.head = function () {
+    return this.segments[this.segments.length - 1];
+  };
+
+  Snake.prototype.isValid = function () {
+    var head = this.head();
+
+    if (!this.board.validPosition(this.head())) {
+      return false;
+    }
+
+    for (var i = 0; i < this.segments.length - 1; i++) {
+      if (this.segments[i].equals(head)) {
+        return false;
       }
     }
-    return grid;
-  };
-  
-//  Board.prototype.render = function () {
-//     var that = this;
-//     this.snake.segments.forEach( function (coord) {
-//        that.grid[coord.pos[0]][coord.pos[1]] = "S";
-//      });
-//
-//     var strs = [];
-//     for (var rowIdx = 0; rowIdx < 20; rowIdx++) {
-//       var marks = [];
-//       for (var colIdx = 0; colIdx < 20; colIdx++) {
-//         marks.push(
-//           this.grid[rowIdx][colIdx] ? "S" : "."
-//         );
-//       }
-//
-//       strs.push(marks.join(" ") + "\n");
-//     }
-//
-//     console.log(strs.join("\n"));
-//
-//   };
-  
-  var Game = SNAKE.Game= function () {
-    this.board = new Board();
-  }
-})();
 
+    return true;
+  };
+
+  Snake.prototype.move = function () {
+    // move snake forward
+    this.segments.push(this.head().plus(Snake.DIFFS[this.dir]));
+
+    // check if eating an egg
+    if (this.eatEgg()) {
+      this.board.egg.place();
+    }
+
+    // if not growing, remove tail segment
+    if (this.growTurns > 0) {
+      this.growTurns -= 1;
+    } else {
+      this.segments.shift();
+    }
+
+    // destroy snake if it eats itself or runs off grid
+    if (!this.isValid()) {
+      this.segments = [];
+    }
+  };
+
+  Snake.prototype.turn = function (dir) {
+    // avoid turning directly back on yourself
+    if ((this.segments.length > 1) &&
+      Snake.DIFFS[this.dir].isOpposite(Snake.DIFFS[dir])) {
+      return;
+    } else {
+      this.dir = dir;
+    }
+  };
+})();
