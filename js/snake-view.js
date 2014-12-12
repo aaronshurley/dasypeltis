@@ -47,33 +47,33 @@
     var view = this;
     var board = view.board;
 
-    var cellsMatrix = buildCellsMatrix();
+    var grid = buildGrid();
     board.snake.segments.forEach(function (seg) {
-      cellsMatrix[seg.i][seg.j].addClass("snake");
+      grid[seg.i][seg.j].addClass("snake");
     });
 
-    cellsMatrix[board.egg.position.i][board.egg.position.j].addClass("egg");
+    grid[board.egg.position.i][board.egg.position.j].addClass("egg");
 
     this.$el.empty();
     this.$el.append("<h3>Your Score: " + board.snake.points + "</h3>");
     this.$el.append("<h5>Use arrow keys to change direction, SPACE to PAUSE game</h5>");
-    cellsMatrix.forEach(function (row) {
+    grid.forEach(function (row) {
       var $rowEl = $('<div class="row"></div>');
       row.forEach(function ($cell) { $rowEl.append($cell) });
       view.$el.append($rowEl);
     });
 
-    function buildCellsMatrix () {
-      var cellsMatrix = [];
+    function buildGrid () {
+      var grid = [];
       for (var i = 0; i < board.dim; i++) {
         var cellsRow = [];
         for (var j = 0; j < board.dim; j++) {
           cellsRow.push($('<div class="cell"></div>'));
         }
-        cellsMatrix.push(cellsRow);
+        grid.push(cellsRow);
       }
 
-      return cellsMatrix;
+      return grid;
     }
   };
 
