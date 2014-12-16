@@ -20,7 +20,7 @@
     37: "W"
   };
 
-  View.STEP_MILLIS = 75;
+  View.STEP_MILLIS = 90;
 
   View.prototype.handleKeyEvent = function (event) {
     if (View.KEYS[event.keyCode]) {
